@@ -1,5 +1,5 @@
 {
-  "name": "DrawSpace",
+  "name": "drawspace",
   "private": true,
   "scripts": {
     "build": "turbo run build",
