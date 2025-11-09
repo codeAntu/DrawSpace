@@ -1,13 +1,25 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import { middleware } from "./middleware";
-import { JWT_SECRET } from "./config";
+import { JWT_SECRET } from "@repo/backend-common/config";
+import {
+  CreateUserSchema,
+  CreateRoomSchema,
+  LoginSchema,
+} from "@repo/common/types";
 
 const app = express();
 const port = 3001;
 
 app.post("/signup", (req, res) => {
   try {
+    const data = CreateUserSchema.safeParse(req.body);
+
+    if (!data.success) {
+      return res.status(400).send({ error: data.error });
+    }
+
+    res.send({ message: "User created successfully" });
   } catch (error: any) {
     res.status(500).send({ error: error.message });
   }
@@ -15,6 +27,16 @@ app.post("/signup", (req, res) => {
 
 app.post("/login", (req, res) => {
   try {
+    const data = LoginSchema.safeParse(req.body);
+    if (!data.success) {
+      return res.status(400).send({ error: data.error });
+    }
+
+    const user = {
+      id: "exampleUserId",
+      email: data.data.email,
+    };
+
     const token = jwt.sign(
       {
         userId: "exampleUserId",
@@ -30,6 +52,12 @@ app.post("/login", (req, res) => {
 
 app.post("/room", middleware, (req, res) => {
   try {
+    const data = CreateRoomSchema.safeParse(req.body);
+    if (!data.success) {
+      return res.status(400).send({ error: data.error });
+    }
+
+    res.send({ message: "Room created successfully" });
   } catch (error: any) {
     res.status(500).send({ error: error.message });
   }
