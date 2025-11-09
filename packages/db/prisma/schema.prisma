@@ -23,6 +23,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   rooms     Room[]
+  chats     Chat[]
 }
 
 model Room {
@@ -37,9 +38,12 @@ model Room {
 }
 
 model Chat {
-  id      String @id @default(uuid())
-  roomId  String
-  room    Room   @relation(fields: [roomId], references: [id])
-  message String
-  userId  String
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id])
+  message   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

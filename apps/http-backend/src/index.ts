@@ -2,6 +2,8 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { middleware } from "./middleware";
 import { JWT_SECRET } from "@repo/backend-common/config";
+import { prisma } from "@repo/db/client";
+
 import {
   CreateUserSchema,
   CreateRoomSchema,
@@ -11,13 +13,21 @@ import {
 const app = express();
 const port = 3001;
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
   try {
     const data = CreateUserSchema.safeParse(req.body);
 
     if (!data.success) {
       return res.status(400).send({ error: data.error });
     }
+
+    const user = await prisma.user.create({
+      data: {
+        email: data.data.email,
+        name: data.data.name,
+        password: data.data.password,
+      },
+    });
 
     res.send({ message: "User created successfully" });
   } catch (error: any) {
