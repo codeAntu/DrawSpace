@@ -4,8 +4,34 @@ import { JWT_SECRET } from "@repo/backend-common/config";
 
 const wss = new WebSocketServer({ port: 8080 });
 
+function checkUserToken(token: string): string | null {
+  try {
+    const decodeToken = jwt.verify(token, JWT_SECRET);
+
+    if (
+      !decodeToken ||
+      typeof decodeToken !== "object" ||
+      !("userId" in decodeToken)
+    ) {
+      return null;
+    }
+
+    return decodeToken.userId;
+  } catch (error) {
+    return null;
+  }
+}
+
+interface MessageData {
+  type: string;
+  roomId?: string;
+  content?: string;
+}
+
 wss.on("connection", function connection(ws, request) {
   const url = request.url;
+
+  console.log("url", url);
 
   if (!url) {
     ws.close(1008, "URL is required");
@@ -15,38 +41,30 @@ wss.on("connection", function connection(ws, request) {
   const queryString = url.includes("?") ? url.split("?")[1] : url.substring(1);
   const queryParams = new URLSearchParams(queryString);
   const token = queryParams.get("token");
+  const userId = token && checkUserToken(token);
 
-  if (!token) {
-    ws.close(1008, "Token is required");
-    return;
-  }
-
-  let userId: string;
-
-  try {
-    const decodeToken = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
-    };
-
-    if (!decodeToken.userId) {
-      ws.close(1008, "Invalid token: userId missing");
-      return;
-    }
-
-    userId = decodeToken.userId;
-  } catch (error) {
+  if (!userId) {
     ws.close(1008, "Invalid token");
     return;
   }
 
-  // Now you have the authenticated userId available for this connection
-  console.log(`User ${userId} connected`);
-
-  ws.on("error", console.error);
-
   ws.on("message", function message(data) {
-    console.log("received: %s", data);
+    const parsedData = JSON.parse(data.toString()) as MessageData;
+
+    if (parsedData.type === "join_room") {
+      // join room logic
+    }
+
+    if (parsedData.type === "leave_room") {
+      // leave room logic
+    }
+
+    if (parsedData.type === "message") {
+      // message handling logic
+    }
   });
 
-  ws.send("something");
+  // ws.on("error", console.error);
+
+  // ws.send("something");
 });

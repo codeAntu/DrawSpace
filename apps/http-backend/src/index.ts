@@ -108,7 +108,12 @@ app.post("/room", middleware, async (req, res) => {
       },
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    res
+      .status(500)
+      .json({
+        error: error.message,
+        message: "Room creation failed, the slug is already taken",
+      });
   }
 });
 
