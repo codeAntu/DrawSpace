@@ -1,5 +1,6 @@
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
+import { Badge } from "@repo/ui/ui/badge";
 
 export default function Home() {
   return (
@@ -7,6 +8,7 @@ export default function Home() {
       <div className="text-5xl bg-red-400">Hello</div>
       <Button>Click me</Button>
       <Card title="My Card">This is a card.</Card>
+      <Badge variant="outline">New</Badge>
 
       {/* Test cases */}
       <a className="bg-green-200">Just text - works?</a>
