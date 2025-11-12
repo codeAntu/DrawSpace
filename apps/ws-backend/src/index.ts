@@ -1,12 +1,10 @@
 import { WebSocketServer } from "ws";
-import { checkUserToken } from "./helper";
 import {
-  addClientToRoom,
-  addMessageToRoom,
-  getRoomClients,
-  isClientInRoom,
-  removeClientFromRoom,
-} from "./store";
+  checkUserToken,
+  handleJoinRoom,
+  handleLeaveRoom,
+  handleMessage,
+} from "./helper";
 import { MessageData } from "./types";
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -29,7 +27,7 @@ wss.on("connection", function connection(ws, request) {
     return;
   }
 
-  ws.on("message", function message(data) {
+  ws.on("message", async function message(data) {
     const parsedData = JSON.parse(data.toString()) as MessageData;
 
     if (parsedData.type === "join_room") {
@@ -38,7 +36,7 @@ wss.on("connection", function connection(ws, request) {
         ws.close(1008, "Room ID is required");
         return;
       }
-      addClientToRoom(roomId, ws);
+      await handleJoinRoom(ws, roomId, userId);
     }
 
     if (parsedData.type === "leave_room") {
@@ -47,53 +45,24 @@ wss.on("connection", function connection(ws, request) {
         ws.close(1008, "Room ID is required");
         return;
       }
-      removeClientFromRoom(roomId, ws);
+      handleLeaveRoom(ws, roomId);
     }
 
     if (parsedData.type === "message") {
       const roomId = parsedData.roomId;
+      const content = parsedData.content;
+
       if (!roomId) {
         ws.close(1008, "Room ID is required");
         return;
       }
 
-      // if (!isClientInRoom(roomId, ws)) {
-      //   ws.send(
-      //     JSON.stringify({
-      //       type: "error",
-      //       message: "You must join the room before sending messages",
-      //     })
-      //   );
-      //   return;
-      // }
-
-      const content = parsedData.content;
       if (!content) {
         ws.close(1008, "Message content is required");
         return;
       }
 
-      const message = {
-        id: crypto.randomUUID(),
-        userId,
-        content,
-        timestamp: Date.now(),
-      };
-
-      addMessageToRoom(roomId, message);
-
-      const clients = getRoomClients(roomId);
-      if (clients) {
-        clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: "message", data: message }));
-          }
-        });
-      }
+      handleMessage(ws, roomId, userId, content);
     }
   });
-
-  // ws.on("error", console.error);
-
-  // ws.send("something");
 });

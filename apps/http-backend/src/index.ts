@@ -115,6 +115,84 @@ app.post("/room", middleware, async (req, res) => {
   }
 });
 
+app.get("/rooms", middleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const rooms = await prisma.room.findMany({
+      where: {
+        OR: [
+          { adminId: userId },
+          {
+            chats: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    res.json({
+      rooms,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/room/:roomId/messages", middleware, async (req, res) => {
+  try {
+    const roomId = req.params.roomId;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Verify room exists
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+    });
+
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Get all messages for the room
+    const messages = await prisma.chat.findMany({
+      where: { roomId },
+      orderBy: { createdAt: "asc" },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      messages: messages.map((msg) => ({
+        id: msg.id,
+        content: msg.message,
+        userId: msg.userId,
+        user: msg.user,
+        timestamp: msg.createdAt,
+      })),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/health", (req, res) => {
   res.json("Hello World!");
 });

@@ -15,26 +15,28 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  photo     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  rooms     Room[]
-  chats     Chat[]
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String?
+  password    String
+  photo       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  rooms       Room[]
+  chats       Chat[]
+  memberships RoomMember[]
 }
 
 model Room {
-  id        String   @id @default(uuid())
-  slug      String   @unique
+  id        String       @id @default(uuid())
+  slug      String       @unique
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   adminId   String
-  admin     User     @relation(fields: [adminId], references: [id])
+  admin     User         @relation(fields: [adminId], references: [id])
   chats     Chat[]
+  members   RoomMember[]
 }
 
 model Chat {
@@ -46,4 +48,17 @@ model Chat {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model RoomMember {
+  id       String   @id @default(uuid())
+  roomId   String
+  userId   String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
 }
