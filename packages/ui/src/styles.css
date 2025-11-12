@@ -1,0 +1,8 @@
+/* Component-level styles for the UI package */
+@import "tailwindcss";
+
+@source "../src/**/*.{js,ts,jsx,tsx}";
+
+a {
+  display: inline-block;
+}
