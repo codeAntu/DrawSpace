@@ -1,37 +1,18 @@
-import jwt from "jsonwebtoken";
 import { WebSocketServer } from "ws";
-import { JWT_SECRET } from "@repo/backend-common/config";
+import { checkUserToken } from "./helper";
+import {
+  addClientToRoom,
+  addMessageToRoom,
+  getRoomClients,
+  isClientInRoom,
+  removeClientFromRoom,
+} from "./store";
+import { MessageData } from "./types";
 
 const wss = new WebSocketServer({ port: 8080 });
 
-function checkUserToken(token: string): string | null {
-  try {
-    const decodeToken = jwt.verify(token, JWT_SECRET);
-
-    if (
-      !decodeToken ||
-      typeof decodeToken !== "object" ||
-      !("userId" in decodeToken)
-    ) {
-      return null;
-    }
-
-    return decodeToken.userId;
-  } catch (error) {
-    return null;
-  }
-}
-
-interface MessageData {
-  type: string;
-  roomId?: string;
-  content?: string;
-}
-
 wss.on("connection", function connection(ws, request) {
   const url = request.url;
-
-  console.log("url", url);
 
   if (!url) {
     ws.close(1008, "URL is required");
@@ -52,15 +33,63 @@ wss.on("connection", function connection(ws, request) {
     const parsedData = JSON.parse(data.toString()) as MessageData;
 
     if (parsedData.type === "join_room") {
-      // join room logic
+      const roomId = parsedData.roomId;
+      if (!roomId) {
+        ws.close(1008, "Room ID is required");
+        return;
+      }
+      addClientToRoom(roomId, ws);
     }
 
     if (parsedData.type === "leave_room") {
-      // leave room logic
+      const roomId = parsedData.roomId;
+      if (!roomId) {
+        ws.close(1008, "Room ID is required");
+        return;
+      }
+      removeClientFromRoom(roomId, ws);
     }
 
     if (parsedData.type === "message") {
-      // message handling logic
+      const roomId = parsedData.roomId;
+      if (!roomId) {
+        ws.close(1008, "Room ID is required");
+        return;
+      }
+
+      // if (!isClientInRoom(roomId, ws)) {
+      //   ws.send(
+      //     JSON.stringify({
+      //       type: "error",
+      //       message: "You must join the room before sending messages",
+      //     })
+      //   );
+      //   return;
+      // }
+
+      const content = parsedData.content;
+      if (!content) {
+        ws.close(1008, "Message content is required");
+        return;
+      }
+
+      const message = {
+        id: crypto.randomUUID(),
+        userId,
+        content,
+        timestamp: Date.now(),
+      };
+
+      addMessageToRoom(roomId, message);
+
+      const clients = getRoomClients(roomId);
+      if (clients) {
+        clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "message", data: message }));
+          }
+        });
+      }
     }
   });
 

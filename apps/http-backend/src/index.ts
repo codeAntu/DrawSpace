@@ -69,7 +69,7 @@ app.post("/login", async (req, res) => {
         userId: user.id,
       },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1y" }
     );
     res.json({ token });
   } catch (error: any) {
@@ -108,12 +108,10 @@ app.post("/room", middleware, async (req, res) => {
       },
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        error: error.message,
-        message: "Room creation failed, the slug is already taken",
-      });
+    res.status(500).json({
+      error: error.message,
+      message: "Room creation failed, the slug is already taken",
+    });
   }
 });
 
