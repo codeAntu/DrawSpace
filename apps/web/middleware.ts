@@ -2,7 +2,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
+  // Check for Bearer token in Authorization header only
+  const authHeader = request.headers.get("authorization");
+  let token = null;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication

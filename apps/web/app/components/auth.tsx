@@ -9,9 +9,11 @@ import {
 } from "@repo/ui/ui/card";
 import { Input } from "@repo/ui/ui/input";
 import { Label } from "@repo/ui/ui/label";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import { loginApi } from "../query/apis/auth";
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -20,22 +22,20 @@ interface AuthFormProps {
 export function AuthForm({ isLogin }: AuthFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("john.doe@example.com");
+  const [password, setPassword] = useState("supersecret123");
+
+  const { mutateAsync: login, isPending } = useMutation({
+    mutationKey: [isLogin ? "login" : "signup"],
+    mutationFn: loginApi,
+    onSuccess: () => {
+      console.log("Authentication successful");
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      console.log({ isLogin, name, email, password });
-    } catch (error) {
-      console.error("Authentication error:", error);
-      alert("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    await login({ email, password });
   };
 
   return (
@@ -110,9 +110,9 @@ export function AuthForm({ isLogin }: AuthFormProps) {
             <Button
               type="submit"
               className="w-full font-bold py-5 transition-all duration-300 "
-              disabled={isLoading}
+              disabled={isPending}
             >
-              {isLoading
+              {isPending
                 ? isLogin
                   ? "Signing In..."
                   : "Signing Up..."
