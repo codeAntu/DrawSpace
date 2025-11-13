@@ -2,7 +2,6 @@
 
 import { Button } from "@repo/ui/components/button";
 import { Card } from "@repo/ui/components/card";
-import { log } from "console";
 import { logoutApi } from "./query/apis/auth";
 
 export default function Home() {

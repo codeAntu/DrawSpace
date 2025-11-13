@@ -11,8 +11,6 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const token = useAuthToken((state) => state.token);
 
-  console.log("RouteGuard - current token:", token);
-
   useEffect(() => {
     const isPublicRoute = publicRoutes.some((route) =>
       pathname.startsWith(route)

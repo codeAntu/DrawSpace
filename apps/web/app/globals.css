@@ -1,4 +1,6 @@
 @import "tailwindcss";
 @import "@repo/tailwind-config";
 
-
+.fullscreen {
+  @apply h-[100dvh] w-full p-5;
+}
