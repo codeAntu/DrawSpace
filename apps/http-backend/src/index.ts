@@ -16,7 +16,6 @@ import {
 const app = express();
 const port = 3001;
 
-// Enable CORS with credentials
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -27,13 +26,13 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.post("/signup", async (req, res) => {
-  const data = CreateUserSchema.safeParse(req.body);
+const apiRouter = express.Router();
 
+apiRouter.post("/signup", async (req, res) => {
+  const data = CreateUserSchema.safeParse(req.body);
   if (!data.success) {
     return res.status(400).json({ error: data.error });
   }
-
   try {
     const user = await prisma.user.create({
       data: {
@@ -42,8 +41,6 @@ app.post("/signup", async (req, res) => {
         password: data.data.password,
       },
     });
-
-    // Sign JWT token
     const token = jwt.sign(
       {
         userId: user.id,
@@ -51,16 +48,6 @@ app.post("/signup", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "1y" }
     );
-
-    // Set HTTP-only cookie
-    res.cookie("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      path: "/",
-    });
-
     res.json({
       message: "User created successfully",
       user: {
@@ -68,6 +55,7 @@ app.post("/signup", async (req, res) => {
         email: user.email,
         name: user.name,
       },
+      token,
     });
   } catch (error: any) {
     res
@@ -76,13 +64,12 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+apiRouter.post("/login", async (req, res) => {
   try {
     const data = LoginSchema.safeParse(req.body);
     if (!data.success) {
       return res.status(400).json({ error: data.error });
     }
-
     const user = await prisma.user.findUnique({
       where: {
         email: data.data.email,
@@ -92,7 +79,6 @@ app.post("/login", async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-
     const token = jwt.sign(
       {
         userId: user.id,
@@ -100,16 +86,6 @@ app.post("/login", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "1y" }
     );
-
-    // Set HTTP-only cookie
-    res.cookie("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-      path: "/",
-    });
-
     res.json({
       message: "Login successful",
       user: {
@@ -117,59 +93,54 @@ app.post("/login", async (req, res) => {
         email: user.email,
         name: user.name,
       },
+      token,
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("auth_token", { path: "/" });
+apiRouter.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
-app.get("/me", async (req, res) => {
+apiRouter.get("/me", middleware, async (req, res) => {
   try {
-    //   const userId = req.userId;
-    // if (!userId) {
-    //   return res.status(401).json({ error: "Unauthorized" });
-    // }
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    // const user = await prisma.user.findUnique({
-    //   where: { id: userId },
-    //   select: {
-    //     id: true,
-    //     email: true,
-    //     name: true,
-    //     photo: true,
-    //   },
-    // });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        photo: true,
+      },
+    });
 
-    // if (!user) {
-    //   return res.status(404).json({ error: "User not found" });
-    // }
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    // res.json({ user });
-
-    res.json({ test: "it works" });
+    res.json({ user });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post("/room", middleware, async (req, res) => {
+apiRouter.post("/room", middleware, async (req, res) => {
   try {
     const data = CreateRoomSchema.safeParse(req.body);
     if (!data.success) {
       return res.status(400).json({ error: data.error });
     }
-
     const userId = req.userId;
-
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
     const room = await prisma.room.create({
       data: {
         name: data.data.name,
@@ -177,7 +148,6 @@ app.post("/room", middleware, async (req, res) => {
         slug: data.data.name.toLowerCase().replace(/\s+/g, "-"),
       },
     });
-
     res.json({
       message: "Room created successfully",
       room: {
@@ -195,14 +165,12 @@ app.post("/room", middleware, async (req, res) => {
   }
 });
 
-app.get("/rooms", middleware, async (req, res) => {
+apiRouter.get("/rooms", middleware, async (req, res) => {
   try {
     const userId = req.userId;
-
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
     const rooms = await prisma.room.findMany({
       where: {
         OR: [
@@ -217,34 +185,25 @@ app.get("/rooms", middleware, async (req, res) => {
         ],
       },
     });
-
-    res.json({
-      rooms,
-    });
+    res.json({ rooms });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.get("/room/:roomId/messages", middleware, async (req, res) => {
+apiRouter.get("/room/:roomId/messages", middleware, async (req, res) => {
   try {
     const roomId = req.params.roomId;
     const userId = req.userId;
-
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-
-    // Verify room exists
     const room = await prisma.room.findUnique({
       where: { id: roomId },
     });
-
     if (!room) {
       return res.status(404).json({ error: "Room not found" });
     }
-
-    // Get all messages for the room
     const messages = await prisma.chat.findMany({
       where: { roomId },
       orderBy: { createdAt: "asc" },
@@ -258,7 +217,6 @@ app.get("/room/:roomId/messages", middleware, async (req, res) => {
         },
       },
     });
-
     res.json({
       messages: messages.map((msg) => ({
         id: msg.id,
@@ -273,9 +231,11 @@ app.get("/room/:roomId/messages", middleware, async (req, res) => {
   }
 });
 
-app.get("/health", (req, res) => {
+apiRouter.get("/health", (req, res) => {
   res.json("Hello World!");
 });
+
+app.use("/api", apiRouter);
 
 app.listen(port, () => {
   console.log(`HTTP server listening at http://localhost:${port}`);

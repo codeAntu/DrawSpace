@@ -29,30 +29,7 @@ export function AuthForm({ isLogin }: AuthFormProps) {
     setIsLoading(true);
 
     try {
-      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
-      const body = isLogin ? { email, password } : { name, email, password };
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Important for cookies
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Authentication error:", data.error);
-        alert(data.error?.message || "Authentication failed");
-        return;
-      }
-
-      console.log("Authentication successful:", data);
-
-      // Redirect to home or dashboard
-      router.push("/");
+      console.log({ isLogin, name, email, password });
     } catch (error) {
       console.error("Authentication error:", error);
       alert("An error occurred. Please try again.");

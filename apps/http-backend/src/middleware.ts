@@ -16,14 +16,14 @@ interface DecodedToken {
 }
 
 export function middleware(req: Request, res: Response, next: NextFunction) {
-  // Try to get token from Authorization header first, then from cookie
-  const authHeader = req.headers.authorization?.split(" ")[1];
-  const cookieToken = req.cookies?.auth_token;
-  const token = authHeader || cookieToken;
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
 
   if (!token) {
     return res.status(401).send({ error: "No token provided" });
   }
+
+  console.log("Verifying token:", token);
 
   try {
     const decodeToken = jwt.verify(token, JWT_SECRET) as DecodedToken;
