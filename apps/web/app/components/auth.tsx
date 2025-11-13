@@ -1,19 +1,21 @@
-import { Spotlight } from "@repo/ui/components/ui/spotlight-new";
-import { Button } from "@repo/ui/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@repo/ui/ui/card";
-import { Input } from "@repo/ui/ui/input";
-import { Label } from "@repo/ui/ui/label";
+} from "@repo/ui/components/card";
+import { Input } from "@repo/ui/components/input";
+import { Label } from "@repo/ui/components/label";
+import { Spotlight } from "@repo/ui/components/spotlight-new";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
-import { loginApi } from "../query/apis/auth";
+import { loginApi, SignupApi } from "../query/apis/auth";
+import { useAuthToken } from "../store/authToken";
+import { toast } from "sonner";
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -24,18 +26,33 @@ export function AuthForm({ isLogin }: AuthFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("john.doe@example.com");
   const [password, setPassword] = useState("supersecret123");
+  const setToken = useAuthToken((state) => state.setToken);
 
-  const { mutateAsync: login, isPending } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationKey: [isLogin ? "login" : "signup"],
-    mutationFn: loginApi,
-    onSuccess: () => {
-      console.log("Authentication successful");
+    mutationFn: () => {
+      return isLogin
+        ? loginApi({ email, password })
+        : SignupApi({ email, name, password });
+    },
+    onSuccess: (data) => {
+      if (!data.success || data.error) {
+        toast.error(data.error || "Something went wrong");
+
+        return;
+      }
+
+      setToken(data.token);
+      console.log("Token set:", data.token);
+
+      router.push("/");
     },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ email, password });
+
+    await mutate();
   };
 
   return (

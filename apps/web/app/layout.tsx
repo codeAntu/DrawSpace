@@ -1,6 +1,8 @@
+import { Toaster } from "@repo/ui/components/sonner";
 import "@repo/ui/styles.css";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { RouteGuard } from "./components/RouteGuard";
 import "./globals.css";
 import Providers from "./provider";
 
@@ -28,7 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} dark font-sans`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <RouteGuard>{children}</RouteGuard>
+        </Providers>
+        <Toaster />
       </body>
     </html>
   );
