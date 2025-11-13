@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} dark font-sans bg-zinc-900 text-white/80`}
+        className={`${geistSans.variable} ${geistMono.variable} dark font-sans bg-zinc-950 text-white/80`}
       >
         <Providers>
           <RouteGuard>{children}</RouteGuard>
