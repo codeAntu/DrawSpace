@@ -19,7 +19,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="fullscreen">
       <div className="flex items-center justify-between mb-5">
-        <div className="grid md:flex items-center gap-8">
+        <div className="grid md:flex items-center gap-8 w-full">
           <div className="flex justify-between items-center ">
             <div className="text-white font-bold text-lg">DrawSpace</div>
             <div className="md:hidden ">
