@@ -1,5 +1,6 @@
 "use client";
-import { Input } from "@repo/ui/components/input";
+import { logoutApi } from "@/app/query/apis/auth";
+import { Button } from "@repo/ui/components/button";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -63,12 +64,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 function Profile() {
   return (
-    <div>
+    <div className="flex items-center gap-2">
       <img
         src="https://avatars.githubusercontent.com/u/98962215?v=4"
         alt=""
         className="h-8 w-8 rounded-full object-cover"
       />
+      <Button size={"sm"} onClick={logoutApi}>
+        Logout
+      </Button>
     </div>
   );
 }
