@@ -182,7 +182,6 @@ apiRouter.post("/room", middleware, async (req, res) => {
       data: {
         name: data.data.name,
         adminId: userId,
-        slug: data.data.name.toLowerCase().replace(/\s+/g, "-"),
       },
     });
     res.json({
@@ -191,7 +190,6 @@ apiRouter.post("/room", middleware, async (req, res) => {
       room: {
         id: room.id,
         name: room.name,
-        slug: room.slug,
         adminId: room.adminId,
       },
       error: null,

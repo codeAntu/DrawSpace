@@ -15,4 +15,5 @@ export const Api = {
   signup: api`/signup`,
   logout: api`/logout`,
   me: api`/me`,
+  room: api`/room`,
 };
