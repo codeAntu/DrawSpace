@@ -12,11 +12,11 @@ import {
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
 import { useMutation } from "@tanstack/react-query";
-import { Plus, Sparkles } from "lucide-react";
-import { createRoom } from "../query/apis/room";
+import { Loader2, Plus, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { createRoom } from "../query/apis/room";
 
 function Create() {
   return (
@@ -58,6 +58,7 @@ function CreateSpace() {
         return;
       }
       toast.success("Space created successfully");
+      router.push(`/space/${data.room.id}`);
     },
   });
 
@@ -84,6 +85,11 @@ function CreateSpace() {
               placeholder="Enter space name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && name.trim()) {
+                  mutate({ name });
+                }
+              }}
             />
           </div>
         </div>
@@ -93,9 +99,10 @@ function CreateSpace() {
           </DialogClose>
           <Button
             type="submit"
-            onClick={() => mutate({ name: "New Space" })}
-            disabled={isPending}
+            onClick={() => mutate({ name })}
+            disabled={isPending || !name.trim()}
           >
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create
           </Button>
         </DialogFooter>
