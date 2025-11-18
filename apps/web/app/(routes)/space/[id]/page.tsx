@@ -1,14 +1,48 @@
 "use client";
-
+import { Excalidraw, MainMenu } from "@excalidraw/excalidraw";
 import { useParams } from "next/navigation";
+
+import "@excalidraw/excalidraw/index.css";
 
 export default function SpacePage() {
   const params = useParams<{ id: string }>();
 
   return (
-    <div>
-      <h1 className="h-[24px] ">Space Details for ID: {params.id}</h1>
-      <canvas className="bg-red-500 w-full h-[calc(100dvh-24px)]">deh</canvas>
+    <div className="h-[100dvh]">
+      <Excalidraw
+        initialData={
+          {
+            elements: [
+              {
+                type: "rectangle",
+                version: 141,
+                versionNonce: 361174001,
+                isDeleted: false,
+                id: "oDVXy8D6rom3H1-LLH2-f",
+                fillStyle: "hachure",
+                strokeWidth: 1,
+                strokeStyle: "solid",
+                roughness: 1,
+                opacity: 100,
+                angle: 0,
+                x: 100.50390625,
+                y: 93.67578125,
+                strokeColor: "#000000",
+                backgroundColor: "transparent",
+                width: 186.47265625,
+                height: 141.9765625,
+                seed: 1968410350,
+                groupIds: [],
+              },
+            ],
+            appState: {
+              zenModeEnabled: true,
+              viewBackgroundColor: "#a5d8ff",
+            },
+            scrollToContent: true,
+          } as any
+        }
+      />
     </div>
   );
 }

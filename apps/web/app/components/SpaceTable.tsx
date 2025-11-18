@@ -37,10 +37,12 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Space, SpaceMember, User } from "../query/apis/space";
 
 export type SpaceRow = {
+  id: string;
   name: string;
   created: string;
   lastEdited: string;
@@ -170,9 +172,11 @@ export function SpaceTable({ spaces }: { spaces: Space[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const router = useRouter();
 
   const data = React.useMemo(() => {
     return spaces.map((space) => ({
+      id: space.id,
       name: space.name,
       created: new Date(space.createdAt).toLocaleDateString(),
       lastEdited: new Date(space.updatedAt).toLocaleDateString(),
@@ -269,7 +273,8 @@ export function SpaceTable({ spaces }: { spaces: Space[] }) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-white/5 hover:bg-white/5 group"
+                  className="border-b border-white/5 hover:bg-white/10 group cursor-pointer"
+                  onClick={() => router.push(`/space/${row.original.id}`)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
