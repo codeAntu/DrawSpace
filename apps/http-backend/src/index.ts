@@ -218,6 +218,18 @@ apiRouter.get("/spaces", middleware, async (req, res) => {
           },
         ],
       },
+      include: {
+        admin: {
+          select: { id: true, name: true, email: true, photo: true },
+        },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, photo: true },
+            },
+          },
+        },
+      },
     });
     res.json({
       success: true,
@@ -247,6 +259,16 @@ apiRouter.get("/space/:spaceId/messages", middleware, async (req, res) => {
     }
     const space = await prisma.space.findUnique({
       where: { id: spaceId },
+      include: {
+        admin: { select: { id: true, name: true, email: true, photo: true } },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, photo: true },
+            },
+          },
+        },
+      },
     });
     if (!space) {
       return res.status(404).json({
@@ -264,12 +286,19 @@ apiRouter.get("/space/:spaceId/messages", middleware, async (req, res) => {
             id: true,
             name: true,
             email: true,
+            photo: true,
           },
         },
       },
     });
     res.json({
       success: true,
+      space: {
+        id: space.id,
+        name: space.name,
+        admin: space.admin,
+        members: space.members,
+      },
       messages: messages.map((msg) => ({
         id: msg.id,
         content: msg.message,

@@ -11,7 +11,7 @@ import {
 } from "@repo/ui/components/dialog";
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -47,6 +47,7 @@ export default Create;
 function CreateSpace() {
   const [name, setName] = useState("");
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation({
     mutationKey: ["create-space"],
     mutationFn: (data: { name: string }) => {
@@ -57,6 +58,7 @@ function CreateSpace() {
         toast.error(data.error || "Something went wrong");
         return;
       }
+      queryClient.invalidateQueries({ queryKey: ["my-spaces", "spaces"] });
       toast.success("Space created successfully");
       router.push(`/space/${data.space.id}`);
     },

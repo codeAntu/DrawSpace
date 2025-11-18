@@ -5,12 +5,25 @@ interface SpaceResponse {
   space: Space;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  photo: string | null;
+}
+
+export interface SpaceMember {
+  user: User;
+}
+
 export interface Space {
   id: string;
   name: string;
   adminId: string;
   createdAt: string;
   updatedAt: string;
+  admin: User;
+  members: SpaceMember[];
 }
 
 interface ApiSpacesResponse {

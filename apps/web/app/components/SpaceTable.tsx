@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@repo/ui/components/avatar";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
@@ -33,30 +38,25 @@ import {
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import * as React from "react";
+import { Space, SpaceMember, User } from "../query/apis/space";
 
 export type SpaceRow = {
   name: string;
   created: string;
   lastEdited: string;
   comments: string;
-  author: string;
-  members: string;
+  author: User;
+  members: SpaceMember[];
 };
 
 export const columns: ColumnDef<SpaceRow>[] = [
   {
     accessorKey: "name",
     header: "NAME",
-    cell: ({ row }) => <div className="text-left">{row.getValue("name")}</div>,
-    meta: { className: "text-left" },
-  },
-  {
-    accessorKey: "location",
-    header: "LOCATION",
     cell: ({ row }) => (
-      <div className="text-left">{row.getValue("location")}</div>
+      <div className="text-left w-1/3">{row.getValue("name")}</div>
     ),
-    meta: { className: "hidden md:table-cell text-left" },
+    meta: { className: "text-left w-1/3" },
   },
   {
     accessorKey: "created",
@@ -86,19 +86,53 @@ export const columns: ColumnDef<SpaceRow>[] = [
     meta: { className: "text-right md:text-left" },
   },
   {
-    accessorKey: "comments",
-    header: "COMMENTS",
-    cell: ({ row }) => (
-      <div className="text-left">{row.getValue("comments")}</div>
-    ),
+    accessorKey: "author",
+    header: "AUTHOR",
+    cell: ({ row }) => {
+      const author = row.original.author;
+      return (
+        <div className="flex items-center gap-2">
+          <Avatar className="h-7 w-7">
+            <AvatarImage
+              src={author.photo || undefined}
+              alt={author.name || author.email}
+            />
+            <AvatarFallback>
+              {author.name?.[0] || author.email?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <span>{author.name || author.email}</span>
+        </div>
+      );
+    },
     meta: { className: "hidden md:table-cell text-left" },
   },
   {
-    accessorKey: "author",
-    header: "AUTHOR",
-    cell: ({ row }) => (
-      <div className="text-left">{row.getValue("author")}</div>
-    ),
+    accessorKey: "members",
+    header: "MEMBERS",
+    cell: ({ row }) => {
+      const members = row.original.members;
+      return (
+        <div className="flex -space-x-2">
+          {members.slice(0, 5).map((m: any) => (
+            <Avatar key={m.user.id} className="h-7 w-7 border-2 border-white">
+              <AvatarImage
+                src={m.user.photo || undefined}
+                alt={m.user.name || m.user.email}
+              />
+              <AvatarFallback>
+                {m.user.name?.[0] || m.user.email?.[0]}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+          {members.length > 5 && (
+            <span className="ml-2 text-xs text-muted-foreground">
+              +{members.length - 5}
+            </span>
+          )}
+        </div>
+      );
+    },
     meta: { className: "hidden md:table-cell text-left" },
   },
   {
@@ -128,7 +162,7 @@ export const columns: ColumnDef<SpaceRow>[] = [
   },
 ];
 
-export function SpaceTable({ data }: { data: SpaceRow[] }) {
+export function SpaceTable({ spaces }: { spaces: Space[] }) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -136,6 +170,17 @@ export function SpaceTable({ data }: { data: SpaceRow[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const data = React.useMemo(() => {
+    return spaces.map((space) => ({
+      name: space.name,
+      created: new Date(space.createdAt).toLocaleDateString(),
+      lastEdited: new Date(space.updatedAt).toLocaleDateString(),
+      comments: "0",
+      author: space.admin,
+      members: space.members,
+    }));
+  }, [spaces]);
 
   const table = useReactTable({
     data,

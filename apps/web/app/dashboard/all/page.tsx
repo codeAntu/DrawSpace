@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function AllPage() {
   const { data } = useQuery({
-    queryKey: ["my-spaces"],
+    queryKey: ["my-spaces", "spaces"],
     queryFn: getMySpaces,
   });
 
@@ -16,7 +16,7 @@ export default function AllPage() {
   return (
     <div className="px-0 py-2 md:px-10 md:py-5 space-y-5 ">
       <Create />
-      <SpaceTable data={data?.spaces || []} />
+      <SpaceTable spaces={data?.spaces || []} />
     </div>
   );
 }
