@@ -5,62 +5,69 @@ export interface StoredMessage {
   userId: string;
   content: string;
   timestamp: number;
-  roomId: string;
+  spaceId: string;
 }
 
-export interface RoomData {
+export interface SpaceData {
   clients: Set<WebSocket>;
   messages: StoredMessage[];
 }
 
-export const store = new Map<string, RoomData>();
+export const store = new Map<string, SpaceData>();
 
-export function addClientToRoom(roomId: string, client: WebSocket): void {
-  if (!store.has(roomId)) {
-    store.set(roomId, { clients: new Set(), messages: [] });
+export function addClientToSpace(spaceId: string, client: WebSocket): void {
+  if (!store.has(spaceId)) {
+    store.set(spaceId, { clients: new Set(), messages: [] });
   }
-  store.get(roomId)!.clients.add(client);
+  store.get(spaceId)!.clients.add(client);
 }
 
-export function removeClientFromRoom(roomId: string, client: WebSocket): void {
-  const room = store.get(roomId);
-  if (room) {
-    room.clients.delete(client);
-    if (room.clients.size === 0) {
+export function removeClientFromSpace(
+  spaceId: string,
+  client: WebSocket
+): void {
+  const space = store.get(spaceId);
+  if (space) {
+    space.clients.delete(client);
+    if (space.clients.size === 0) {
+      store.delete(spaceId);
     }
   }
 }
 
-export function addMessageToRoom(roomId: string, message: StoredMessage): void {
-  const room = store.get(roomId);
-  if (room) {
-    room.messages.push(message);
+export function addMessageToSpace(
+  spaceId: string,
+  message: StoredMessage
+): void {
+  const space = store.get(spaceId);
+  if (space) {
+    space.messages.push(message);
   }
 }
 
-export function getRoomClients(roomId: string): Set<WebSocket> | undefined {
-  return store.get(roomId)?.clients;
+export function getSpaceClients(spaceId: string): Set<WebSocket> | undefined {
+  return store.get(spaceId)?.clients;
 }
 
-export function isClientInRoom(roomId: string, client: WebSocket): boolean {
-  const room = store.get(roomId);
-  return room ? room.clients.has(client) : false;
+export function isClientInSpace(spaceId: string, client: WebSocket): boolean {
+  const space = store.get(spaceId);
+  return space ? space.clients.has(client) : false;
 }
 
 export function getAllPendingMessages(): StoredMessage[] {
   const allMessages: StoredMessage[] = [];
-  store.forEach((room) => {
-    allMessages.push(...room.messages);
+  store.forEach((space) => {
+    allMessages.push(...space.messages);
   });
   return allMessages;
 }
 
-export function clearRoomMessages(roomId: string): void {
-  const room = store.get(roomId);
-  if (room) {
-    room.messages = [];
-    if (room.clients.size === 0) {
-      store.delete(roomId);
+export function clearSpaceMessages(spaceId: string): void {
+  const space = store.get(spaceId);
+  if (space) {
+    space.messages = [];
+    if (space.clients.size === 0) {
+      store.delete(spaceId);
     }
   }
 }

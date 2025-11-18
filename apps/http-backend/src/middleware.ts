@@ -22,9 +22,7 @@ export function middleware(req: Request, res: Response, next: NextFunction) {
   if (!token) {
     return res.status(401).send({ error: "No token provided" });
   }
-
-  console.log("Verifying token:", token);
-
+  
   try {
     const decodeToken = jwt.verify(token, JWT_SECRET) as DecodedToken;
 

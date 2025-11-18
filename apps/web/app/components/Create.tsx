@@ -16,7 +16,7 @@ import { Loader2, Plus, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { createRoom } from "../query/apis/room";
+import { createSpace } from "../query/apis/space";
 
 function Create() {
   return (
@@ -48,9 +48,9 @@ function CreateSpace() {
   const [name, setName] = useState("");
   const router = useRouter();
   const { mutate, isPending } = useMutation({
-    mutationKey: ["create-room"],
+    mutationKey: ["create-space"],
     mutationFn: (data: { name: string }) => {
-      return createRoom(data);
+      return createSpace(data);
     },
     onSuccess: (data) => {
       if (!data.success || data.error) {
@@ -58,7 +58,7 @@ function CreateSpace() {
         return;
       }
       toast.success("Space created successfully");
-      router.push(`/space/${data.room.id}`);
+      router.push(`/space/${data.space.id}`);
     },
   });
 

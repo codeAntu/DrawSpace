@@ -15,33 +15,33 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  email       String       @unique
+  id          String        @id @default(uuid())
+  email       String        @unique
   name        String?
   password    String
   photo       String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  rooms       Room[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  spaces      Space[]
   chats       Chat[]
-  memberships RoomMember[]
+  memberships SpaceMember[]
 }
 
-model Room {
-  id        String       @id @default(uuid())
+model Space {
+  id        String        @id @default(uuid())
   name      String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   adminId   String
-  admin     User         @relation(fields: [adminId], references: [id])
+  admin     User          @relation(fields: [adminId], references: [id])
   chats     Chat[]
-  members   RoomMember[]
+  members   SpaceMember[]
 }
 
 model Chat {
   id        String   @id @default(uuid())
-  roomId    String
-  room      Room     @relation(fields: [roomId], references: [id])
+  spaceId   String
+  space     Space    @relation(fields: [spaceId], references: [id])
   message   String
   userId    String
   user      User     @relation(fields: [userId], references: [id])
@@ -49,15 +49,15 @@ model Chat {
   updatedAt DateTime @updatedAt
 }
 
-model RoomMember {
+model SpaceMember {
   id       String   @id @default(uuid())
-  roomId   String
+  spaceId  String
   userId   String
   role     String   @default("member")
   joinedAt DateTime @default(now())
 
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([roomId, userId])
+  @@unique([spaceId, userId])
 }

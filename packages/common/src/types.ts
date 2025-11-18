@@ -11,6 +11,6 @@ export const LoginSchema = z.object({
   password: z.string().min(6).max(100),
 });
 
-export const CreateRoomSchema = z.object({
+export const CreateSpaceSchema = z.object({
   name: z.string().min(3).max(50),
 });

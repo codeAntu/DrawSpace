@@ -1,8 +1,8 @@
 import { WebSocketServer } from "ws";
 import {
   checkUserToken,
-  handleJoinRoom,
-  handleLeaveRoom,
+  handleJoinSpace,
+  handleLeaveSpace,
   handleMessage,
 } from "./helper";
 import { MessageData } from "./types";
@@ -30,30 +30,30 @@ wss.on("connection", function connection(ws, request) {
   ws.on("message", async function message(data) {
     const parsedData = JSON.parse(data.toString()) as MessageData;
 
-    if (parsedData.type === "join_room") {
-      const roomId = parsedData.roomId;
-      if (!roomId) {
-        ws.close(1008, "Room ID is required");
+    if (parsedData.type === "join_space") {
+      const spaceId = parsedData.spaceId;
+      if (!spaceId) {
+        ws.close(1008, "Space ID is required");
         return;
       }
-      await handleJoinRoom(ws, roomId, userId);
+      await handleJoinSpace(ws, spaceId, userId);
     }
 
-    if (parsedData.type === "leave_room") {
-      const roomId = parsedData.roomId;
-      if (!roomId) {
-        ws.close(1008, "Room ID is required");
+    if (parsedData.type === "leave_space") {
+      const spaceId = parsedData.spaceId;
+      if (!spaceId) {
+        ws.close(1008, "Space ID is required");
         return;
       }
-      handleLeaveRoom(ws, roomId);
+      handleLeaveSpace(ws, spaceId);
     }
 
     if (parsedData.type === "message") {
-      const roomId = parsedData.roomId;
+      const spaceId = parsedData.spaceId;
       const content = parsedData.content;
 
-      if (!roomId) {
-        ws.close(1008, "Room ID is required");
+      if (!spaceId) {
+        ws.close(1008, "Space ID is required");
         return;
       }
 
@@ -62,7 +62,7 @@ wss.on("connection", function connection(ws, request) {
         return;
       }
 
-      handleMessage(ws, roomId, userId, content);
+      handleMessage(ws, spaceId, userId, content);
     }
   });
 });

@@ -36,11 +36,11 @@ import * as React from "react";
 
 export type SpaceRow = {
   name: string;
-  location: string;
   created: string;
   lastEdited: string;
   comments: string;
   author: string;
+  members: string;
 };
 
 export const columns: ColumnDef<SpaceRow>[] = [

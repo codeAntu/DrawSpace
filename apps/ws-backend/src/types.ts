@@ -1,12 +1,10 @@
 export interface MessageData {
   type: string;
-  roomId?: string;
+  spaceId?: string;
   content?: string;
 }
 
-export interface Content { 
+export interface Content {
   shape: string;
   color: string;
 }
-
-

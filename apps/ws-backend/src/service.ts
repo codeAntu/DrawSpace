@@ -18,16 +18,16 @@ export async function scheduleBatchSave() {
     try {
       await prisma.chat.createMany({
         data: pendingMessages.map((msg) => ({
-          roomId: msg.roomId,
+          spaceId: msg.spaceId,
           userId: msg.userId,
           message: msg.content,
         })),
       });
 
-      store.forEach((room) => {
-        room.messages = [];
-        if (room.clients.size === 0) {
-          store.delete(room as any);
+      store.forEach((space) => {
+        space.messages = [];
+        if (space.clients.size === 0) {
+          store.delete(space as any);
         }
       });
     } catch (error) {}

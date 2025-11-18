@@ -9,7 +9,7 @@ import { middleware } from "./middleware";
 import { sendError, sendSuccess } from "./responseHelper";
 
 import {
-  CreateRoomSchema,
+  CreateSpaceSchema,
   CreateUserSchema,
   LoginSchema,
 } from "@repo/common/types";
@@ -114,13 +114,11 @@ apiRouter.get("/me", middleware, async (req, res) => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          error: "Unauthorized",
-          message: "Unauthorized",
-        });
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized",
+        message: "Unauthorized",
+      });
     }
 
     const user = await prisma.user.findUnique({
@@ -134,13 +132,11 @@ apiRouter.get("/me", middleware, async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          error: "User not found",
-          message: "User not found",
-        });
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+        message: "User not found",
+      });
     }
 
     res.json({
@@ -150,19 +146,17 @@ apiRouter.get("/me", middleware, async (req, res) => {
       message: "User fetched successfully",
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: error.message,
-        message: "Failed to fetch user",
-      });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to fetch user",
+    });
   }
 });
 
-apiRouter.post("/room", middleware, async (req, res) => {
+apiRouter.post("/space", middleware, async (req, res) => {
   try {
-    const data = CreateRoomSchema.safeParse(req.body);
+    const data = CreateSpaceSchema.safeParse(req.body);
     if (!data.success) {
       return res
         .status(400)
@@ -170,15 +164,13 @@ apiRouter.post("/room", middleware, async (req, res) => {
     }
     const userId = req.userId;
     if (!userId) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          error: "Unauthorized",
-          message: "Unauthorized",
-        });
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized",
+        message: "Unauthorized",
+      });
     }
-    const room = await prisma.room.create({
+    const space = await prisma.space.create({
       data: {
         name: data.data.name,
         adminId: userId,
@@ -186,38 +178,34 @@ apiRouter.post("/room", middleware, async (req, res) => {
     });
     res.json({
       success: true,
-      message: "Room created successfully",
-      room: {
-        id: room.id,
-        name: room.name,
-        adminId: room.adminId,
+      message: "Space created successfully",
+      space: {
+        id: space.id,
+        name: space.name,
+        adminId: space.adminId,
       },
       error: null,
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: error.message,
-        message: "Room creation failed, the slug is already taken",
-      });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Space creation failed, the slug is already taken",
+    });
   }
 });
 
-apiRouter.get("/rooms", middleware, async (req, res) => {
+apiRouter.get("/spaces", middleware, async (req, res) => {
   try {
     const userId = req.userId;
     if (!userId) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          error: "Unauthorized",
-          message: "Unauthorized",
-        });
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized",
+        message: "Unauthorized",
+      });
     }
-    const rooms = await prisma.room.findMany({
+    const spaces = await prisma.space.findMany({
       where: {
         OR: [
           { adminId: userId },
@@ -233,48 +221,42 @@ apiRouter.get("/rooms", middleware, async (req, res) => {
     });
     res.json({
       success: true,
-      rooms,
+      spaces,
       error: null,
-      message: "Rooms fetched successfully",
+      message: "Spaces fetched successfully",
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: error.message,
-        message: "Failed to fetch rooms",
-      });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to fetch spaces",
+    });
   }
 });
 
-apiRouter.get("/room/:roomId/messages", middleware, async (req, res) => {
+apiRouter.get("/space/:spaceId/messages", middleware, async (req, res) => {
   try {
-    const roomId = req.params.roomId;
+    const spaceId = req.params.spaceId;
     const userId = req.userId;
     if (!userId) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          error: "Unauthorized",
-          message: "Unauthorized",
-        });
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized",
+        message: "Unauthorized",
+      });
     }
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
+    const space = await prisma.space.findUnique({
+      where: { id: spaceId },
     });
-    if (!room) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          error: "Room not found",
-          message: "Room not found",
-        });
+    if (!space) {
+      return res.status(404).json({
+        success: false,
+        error: "Space not found",
+        message: "Space not found",
+      });
     }
     const messages = await prisma.chat.findMany({
-      where: { roomId },
+      where: { spaceId },
       orderBy: { createdAt: "asc" },
       include: {
         user: {
@@ -299,13 +281,11 @@ apiRouter.get("/room/:roomId/messages", middleware, async (req, res) => {
       message: "Messages fetched successfully",
     });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: error.message,
-        message: "Failed to fetch messages",
-      });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to fetch messages",
+    });
   }
 });
 

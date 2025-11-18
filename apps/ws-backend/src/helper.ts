@@ -2,42 +2,42 @@ import { prisma } from "@repo/db/client";
 import { WebSocket } from "ws";
 import { scheduleBatchSave } from "./service";
 import {
-  addClientToRoom,
-  addMessageToRoom,
-  getRoomClients,
-  isClientInRoom,
-  removeClientFromRoom,
+  addClientToSpace,
+  addMessageToSpace,
+  getSpaceClients,
+  isClientInSpace,
+  removeClientFromSpace,
   store,
 } from "./store";
 
 import { JWT_SECRET } from "@repo/backend-common/config";
 import jwt from "jsonwebtoken";
 
-export async function handleJoinRoom(
+export async function handleJoinSpace(
   ws: WebSocket,
-  roomId: string,
+  spaceId: string,
   userId: string
 ) {
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
+  const space = await prisma.space.findUnique({
+    where: { id: spaceId },
   });
 
-  if (!room) {
+  if (!space) {
     ws.send(
       JSON.stringify({
         type: "error",
-        message: "Room not found",
+        message: "Space not found",
       })
     );
     return;
   }
 
-  const isAdmin = room.adminId === userId;
+  const isAdmin = space.adminId === userId;
 
-  const member = await prisma.roomMember.findUnique({
+  const member = await prisma.spaceMember.findUnique({
     where: {
-      roomId_userId: {
-        roomId,
+      spaceId_userId: {
+        spaceId,
         userId,
       },
     },
@@ -47,20 +47,20 @@ export async function handleJoinRoom(
     ws.send(
       JSON.stringify({
         type: "error",
-        message: "You are not a member of this room",
+        message: "You are not a member of this space",
       })
     );
     return;
   }
 
-  addClientToRoom(roomId, ws);
+  addClientToSpace(spaceId, ws);
 
-  const roomData = store.get(roomId);
-  if (roomData && roomData.messages.length > 0) {
+  const spaceData = store.get(spaceId);
+  if (spaceData && spaceData.messages.length > 0) {
     ws.send(
       JSON.stringify({
         type: "pending_messages",
-        messages: roomData.messages,
+        messages: spaceData.messages,
       })
     );
   }
@@ -68,26 +68,26 @@ export async function handleJoinRoom(
   ws.send(
     JSON.stringify({
       type: "joined",
-      roomId: roomId,
+      spaceId: spaceId,
     })
   );
 }
 
-export function handleLeaveRoom(ws: WebSocket, roomId: string) {
-  removeClientFromRoom(roomId, ws);
+export function handleLeaveSpace(ws: WebSocket, spaceId: string) {
+  removeClientFromSpace(spaceId, ws);
 }
 
 export function handleMessage(
   ws: WebSocket,
-  roomId: string,
+  spaceId: string,
   userId: string,
   content: string
 ) {
-  if (!isClientInRoom(roomId, ws)) {
+  if (!isClientInSpace(spaceId, ws)) {
     ws.send(
       JSON.stringify({
         type: "error",
-        message: "You must join the room before sending messages",
+        message: "You must join the space before sending messages",
       })
     );
     return;
@@ -98,13 +98,13 @@ export function handleMessage(
     userId,
     content,
     timestamp: Date.now(),
-    roomId: roomId,
+    spaceId: spaceId,
   };
 
-  addMessageToRoom(roomId, message);
+  addMessageToSpace(spaceId, message);
   scheduleBatchSave();
 
-  const clients = getRoomClients(roomId);
+  const clients = getSpaceClients(spaceId);
   if (clients) {
     clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
